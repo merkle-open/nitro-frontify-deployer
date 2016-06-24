@@ -12,6 +12,7 @@ const unlink = denodeify(require('fs').unlink);
 
 const tmp = path.resolve(__dirname, '..', 'tmp', 'testing');
 const fixtures = path.resolve(__dirname, 'fixtures');
+const compilerMock = (tpl) => () => tpl.toUpperCase();
 
 let testDirId = 0;
 async function createTestEnvironment(environment = 'valid') {
@@ -24,20 +25,24 @@ async function createTestEnvironment(environment = 'valid') {
 }
 
 test('should verify that all files are valid', async t => {
-    const {componentDir} = await createTestEnvironment('valid');
+    const {componentDir, tmpDir} = await createTestEnvironment('valid');
     const deployer = new NitroFrontifyDeployer({
       rootDirectory: componentDir,
-      mapping: { 'atoms': 'atom' }
+      mapping: { 'atoms': 'atom' },
+      compiler: compilerMock,
+      targetDir: tmpDir
     });
     t.is(await deployer.validateComponents(), true);
     t.pass();
 });
 
 test('should throw if a component is not valid', async t => {
-    const {componentDir} = await createTestEnvironment('invalid');
+    const {componentDir, tmpDir} = await createTestEnvironment('invalid');
     const deployer = new NitroFrontifyDeployer({
       rootDirectory: componentDir,
-      mapping: { 'atoms': 'atom' }
+      mapping: { 'atoms': 'atom' },
+      compiler: compilerMock,
+      targetDir: tmpDir
     });
     var err;
     try {
@@ -52,10 +57,12 @@ test('should throw if a component is not valid', async t => {
 });
 
 test('should throw no component exists', async t => {
-    const {componentDir} = await createTestEnvironment('empty');
+    const {componentDir, tmpDir} = await createTestEnvironment('empty');
     const deployer = new NitroFrontifyDeployer({
       rootDirectory: componentDir,
-      mapping: { 'atoms': 'atom' }
+      mapping: { 'atoms': 'atom' },
+      compiler: compilerMock,
+      targetDir: tmpDir
     });
     var err;
     try {
@@ -69,10 +76,12 @@ test('should throw no component exists', async t => {
 });
 
 test('should throw if the component type is not in the mapping', async t => {
-    const {componentDir} = await createTestEnvironment('valid');
+    const {componentDir, tmpDir} = await createTestEnvironment('valid');
     const deployer = new NitroFrontifyDeployer({
       rootDirectory: componentDir,
-      mapping: { }
+      mapping: { },
+      compiler: compilerMock,
+      targetDir: tmpDir
     });
     var err;
     try {
@@ -86,17 +95,22 @@ test('should throw if the component type is not in the mapping', async t => {
 });
 
 test('should generate the transferdata for a component', async t => {
-  const {componentDir} = await createTestEnvironment('valid');
+  const {componentDir, tmpDir} = await createTestEnvironment('valid');
   const deployer = new NitroFrontifyDeployer({
     rootDirectory: componentDir,
-    mapping: { 'atoms': 'atom' }
+    mapping: { 'atoms': 'atom' },
+    compiler: compilerMock,
+    targetDir: tmpDir
   });
-  var [component] = await deployer._generateComponentsTransferData();
+  const buttonComponent = await deployer.nitroPatternResolver.getComponent('atoms/button');
+  var transferData = await deployer._generateComponentTransferData(buttonComponent);
   var expected = {
     'name': 'button',
-    'type': 'atoms',
+    'type': 'atom',
+    'stability': 'unstable',
+    'id': 189,
     'variations': {
-      'example.hbs': {
+      '_example/example.hbs': {
         'name': 'button example',
         'assets': {
           'html': [
@@ -106,10 +120,42 @@ test('should generate the transferdata for a component', async t => {
       }
     }
   };
-  t.deepEqual(component, expected);
+  t.deepEqual(transferData, expected);
   t.pass();
 });
 
+
+test('should compile a components examples', async t => {
+  const {componentDir, tmpDir} = await createTestEnvironment('valid');
+  const deployer = new NitroFrontifyDeployer({
+    rootDirectory: componentDir,
+    mapping: { 'atoms': 'atom' },
+    compiler: compilerMock,
+    targetDir: tmpDir
+  });
+  const buttonComponent = await deployer.nitroPatternResolver.getComponent('atoms/button');
+  await deployer._buildComponent(buttonComponent);
+  const renderedTemplate = await readFile(path.join(tmpDir, 'atoms', 'button', 'example.html'));
+  t.is(renderedTemplate.toString(), "HELLO WORLD");
+  t.pass();
+});
+
+test('should generate a components pattern.json', async t => {
+  const {componentDir, tmpDir} = await createTestEnvironment('valid');
+  const deployer = new NitroFrontifyDeployer({
+    rootDirectory: componentDir,
+    mapping: { 'atoms': 'atom' },
+    compiler: compilerMock,
+    targetDir: tmpDir
+  });
+  const buttonComponent = await deployer.nitroPatternResolver.getComponent('atoms/button');
+  await deployer._buildComponent(buttonComponent);
+  const patternJson = await readFile(path.join(tmpDir, 'atoms', 'button', 'pattern.json'));
+  const patternData = JSON.parse(patternJson.toString());
+  var transferData = await deployer._generateComponentTransferData(buttonComponent);
+  t.deepEqual(patternData, transferData);
+  t.pass();
+});
 
 test.after.always('cleanup', async t => {
   await rimraf(tmp);

@@ -1,6 +1,5 @@
 {
-  "name": "Button",
+  "name": "button",
   "id": 189,
-  "type": "atom",
   "stability": "unstable"
 }
