@@ -1,22 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
+  "description": "from https://docs.frontify.com/d/2MwJ9kHF57Sc/api#/style-guide-api/build-content-blocks/metadata",
   "properties": {
-    "name": {
-      "type": "string"
-    },
     "id": {
       "type": "integer"
     },
-    "type": {
+    "description": {
       "type": "string"
     },
     "stability": {
-      "type": "string"
+      "enum": ["alpha", "beta", "stable"]
     }
   },
   "required": [
-    "name",
     "stability"
   ]
 }

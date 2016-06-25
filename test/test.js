@@ -14,6 +14,14 @@ const tmp = path.resolve(__dirname, '..', 'tmp', 'testing');
 const fixtures = path.resolve(__dirname, 'fixtures');
 const compilerMock = (tpl) => () => tpl.toUpperCase();
 
+async function getErrorMessage(cb) {
+  try {
+    await Promise.resolve().then(cb);
+  } catch(e) {
+    return e.message;
+  }
+}
+
 let testDirId = 0;
 async function createTestEnvironment(environment = 'valid') {
   const targetDir = path.resolve(tmp, 'test-' + testDirId++);
@@ -44,15 +52,12 @@ test('should throw if a component is not valid', async t => {
       compiler: compilerMock,
       targetDir: tmpDir
     });
-    var err;
-    try {
+    var err = await getErrorMessage(async () => {
       await deployer.validateComponents();
-    } catch(e) {
-      err = e;
-    }
+    });
     var invalidFile = path.join(componentDir, 'atoms', 'button', 'pattern.json');
-    var expectedMessage = `data should have required property 'name' in "${invalidFile}"`;
-    t.is(err.message, expectedMessage);
+    var expectedMessage = `Schema "frontify-deployer-schema" can't be applied for "${invalidFile}" because data.stability should be equal to one of the allowed values`;
+    t.is(err, expectedMessage);
     t.pass();
 });
 
@@ -107,7 +112,7 @@ test('should generate the transferdata for a component', async t => {
   var expected = {
     'name': 'button',
     'type': 'atom',
-    'stability': 'unstable',
+    'stability': 'beta',
     'id': 189,
     'variations': {
       '_example/example.hbs': {

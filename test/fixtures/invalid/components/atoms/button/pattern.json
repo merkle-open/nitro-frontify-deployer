@@ -1,5 +1,6 @@
 {
   "id": 189,
   "type": "atom",
-  "stability": "unstable"
+  "stability": "unstable",
+  "properties": {}
 }

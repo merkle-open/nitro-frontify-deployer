@@ -3,9 +3,9 @@ var path = require('path');
 var denodeify = require('denodeify');
 var fs = require('fs');
 var _ = require('lodash');
-var Ajv = require('ajv');
 var schema = require('./schema.json');
 var NitroPatternResolver = require('nitro-pattern-resolver');
+var NitroPatternValidator = require('nitro-pattern-validator');
 var mkdirp = denodeify(require('mkdirp'));
 var fsWriteFiles = denodeify(fs.writeFile);
 var fsReadFile = denodeify(fs.readFile);
@@ -31,6 +31,9 @@ function NitroFrontifyDeployer(config) {
   this.options.compiler = config.compiler;
   // Options to deploy the result to frontify
   this.options.frontifyOptions = config.frontify;
+
+  this.patternValidator = config.nitroPatternValidator || new NitroPatternValidator();
+  this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
 }
 
 /**
@@ -47,7 +50,7 @@ NitroFrontifyDeployer.prototype.validateComponents = function() {
         throw new Error('Component validation failed - no components found');
       }
       return !_.values(components)
-        .some((component) => !this._validateComponent(component.data, component.metaFile));
+        .some((component) => !this._validateComponent(component));
     });
 };
 
@@ -64,18 +67,14 @@ NitroFrontifyDeployer.prototype.deploy = function() {
 /**
  * Validate a single component
  */
-NitroFrontifyDeployer.prototype._validateComponent = function(component, name) {
-  var ajv = new Ajv();
-  var valid = ajv.validate(schema, component);
-  if (!valid) {
-    throw new Error(ajv.errorsText() + ' in "' + name + '"');
-  }
+NitroFrontifyDeployer.prototype._validateComponent = function(component) {
+  this.patternValidator.validateComponent(component);
   // Get the type folder name e.g. 'atoms' or 'molecules'
-  var typeFolderName = path.basename(path.dirname(path.dirname(name)));
+  var typeFolderName = path.basename(path.dirname(path.dirname(component.metaFile)));
   if (!this.options.mapping[typeFolderName]) {
     throw new Error('Folder name "' + typeFolderName + '" is not in the mapping.');
   }
-  return valid;
+  return true;
 };
 
 /**
@@ -107,9 +106,16 @@ NitroFrontifyDeployer.prototype._generateComponentTransferData = function(compon
       resultJson[property] = sourceJson[property]
     }
   });
-  // Add type from folder name
+  var componentPath = path.dirname(component.metaFile);
+  var componentName = path.basename(componentPath);
+  var componenType = path.basename(path.dirname(componentPath));
+  // Set name from folder name e.g. components/atoms/button -> button
+  if (!resultJson.name) {
+    resultJson.name = componentName;
+  }
+  // Set type from folder name e.g. components/atoms/button -> atoms -> [options.mapping] -> atom
   if (!resultJson.type) {
-    resultJson.type = this.options.mapping[path.basename(path.dirname(path.dirname(component.metaFile)))];
+    resultJson.type = this.options.mapping[componenType];
   }
   // Add variations
   resultJson.variations = {};

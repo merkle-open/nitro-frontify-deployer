@@ -1,5 +1,6 @@
 {
   "name": "button",
   "id": 189,
-  "stability": "unstable"
+  "stability": "beta",
+  "properties": {}
 }
