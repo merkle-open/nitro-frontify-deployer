@@ -4,7 +4,11 @@
   "description": "A helper to deploy all files to frontify",
   "main": "index.js",
   "scripts": {
-    "test": "ava -v"
+    "test": "ava -v",
+    "posttest": "npm-run-all posttest:*",
+    "posttest:coverage": "nyc ava",
+    "posttest:coverage-report": "nyc report --reporter=html",
+    "posttest:coverage": "nyc check-coverage --lines 100 --functions 100 --branches 100"
   },
   "repository": {
     "type": "git",
@@ -33,7 +37,10 @@
   },
   "devDependencies": {
     "ava": "^0.15.2",
+    "coveralls": "^2.11.9",
     "ncp": "^2.0.0",
+    "npm-run-all": "^2.2.2",
+    "nyc": "^6.6.1",
     "rimraf": "^2.5.2"
   }
 }

@@ -30,7 +30,7 @@ function NitroFrontifyDeployer(config) {
   // The template compiler
   this.options.compiler = config.compiler;
   // Options to deploy the result to frontify
-  this.options.frontifyOptions = config.frontify;
+  this.options.frontifyOptions = config.frontifyOptions;
 
   this.patternValidator = config.nitroPatternValidator || new NitroPatternValidator();
   this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
@@ -110,10 +110,12 @@ NitroFrontifyDeployer.prototype._generateComponentTransferData = function(compon
   var componentName = path.basename(componentPath);
   var componenType = path.basename(path.dirname(componentPath));
   // Set name from folder name e.g. components/atoms/button -> button
+  /* istanbul ignore else */
   if (!resultJson.name) {
     resultJson.name = componentName;
   }
   // Set type from folder name e.g. components/atoms/button -> atoms -> [options.mapping] -> atom
+  /* istanbul ignore else */
   if (!resultJson.type) {
     resultJson.type = this.options.mapping[componenType];
   }
@@ -130,13 +132,14 @@ NitroFrontifyDeployer.prototype._generateComponentTransferData = function(compon
 };
 
 /**
- * Compile the example
+ * Compile the example template using the engine from the config e.g. handlebars
  */
 NitroFrontifyDeployer.prototype._compileExample = function(templateSrc, templateDest) {
   return mkdirp(path.dirname(templateDest)).then(() => {
     return fsReadFile(templateSrc).then((src) => {
       var compiled = this.options.compiler(src.toString());
       // Execute template
+      /* istanbul ignore else */
       if (typeof compiled === 'function') {
         compiled = compiled({});
       }
@@ -183,9 +186,9 @@ NitroFrontifyDeployer.prototype._buildComponents = function() {
 /**
  * Syncs all components to frontify
  */
-NitroFrontifyDeployer.prototype._syncComponents = function(component) {
+NitroFrontifyDeployer.prototype._syncComponents = function() {
   assert(typeof this.options.frontifyOptions === 'object', `Please specifiy the frontify options`);
-  return frontify.syncPatterns(_.extend({
+  return frontifyApi.syncPatterns(_.extend({
     cwd: this.options.targetDir
   }, this.options.frontifyOptions), ['*/*.json']);
 };
