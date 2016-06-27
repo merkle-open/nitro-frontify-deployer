@@ -123,7 +123,9 @@ NitroFrontifyDeployer.prototype._generateComponentTransferData = function(compon
   resultJson.variations = {};
   return this.nitroPatternResolver.getComponentExamples(component.directory)
     .then((examples) => {
-      examples.forEach((example) => {
+      examples
+      .filter((example) => !example.hidden)
+      .forEach((example) => {
         var exampleName = path.relative(component.directory, example.filename).replace(/\\/g, '/');
         resultJson.variations[exampleName] = this._generateVariation(component, example);
       });

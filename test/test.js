@@ -61,7 +61,7 @@ test('should throw if a component is not valid', async t => {
       await deployer.validateComponents();
     });
     var invalidFile = path.join(componentDir, 'atoms', 'button', 'pattern.json');
-    var expectedMessage = `Schema "frontify-deployer-schema" can't be applied for "${invalidFile}" because data.stability should be equal to one of the allowed values`;
+    var expectedMessage = `Schema "nitro-frontify-deployer-input-schema" can't be applied for "${invalidFile}" because data.stability should be equal to one of the allowed values`;
     t.is(err, expectedMessage);
     t.pass();
 });
