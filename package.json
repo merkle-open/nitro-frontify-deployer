@@ -1,11 +1,12 @@
 {
   "name": "nitro-frontify-deployer",
   "version": "0.0.1",
-  "description": "A helper to deploy all files to frontify",
+  "description": "A helper to deploy all nitro components to frontify",
   "main": "index.js",
   "scripts": {
     "test": "ava -v",
     "posttest": "npm-run-all posttest:*",
+    "posttest:lint": "eslint .",
     "posttest:coverage": "nyc ava",
     "posttest:coverage-report": "nyc report --reporter=html",
     "posttest:coverage-check": "nyc check-coverage --lines 100 --functions 100 --branches 100"
@@ -32,12 +33,16 @@
     "denodeify": "^1.2.1",
     "lodash": "^4.13.1",
     "mkdirp": "^0.5.1",
-    "nitro-pattern-resolver": "git://github.com/namics/node-modules.git#nitro-pattern-resolver",
-    "nitro-pattern-validator": "git://github.com/namics/node-modules.git#nitro-pattern-validator"
+    "nitro-component-resolver": "^0.0.1",
+    "nitro-component-validator": "^0.0.1"
   },
   "devDependencies": {
+    "@namics/eslint-config": "git://github.com/namics/eslint-config-namics.git#develop",
     "ava": "^0.15.2",
+    "babel-eslint": "^6.1.0",
     "coveralls": "^2.11.9",
+    "eslint": "^2.13.1",
+    "eslint-plugin-import": "^1.9.2",
     "ncp": "^2.0.0",
     "npm-run-all": "^2.2.2",
     "nyc": "^6.6.1",

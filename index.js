@@ -1,198 +1,227 @@
-var assert = require('assert');
-var path = require('path');
-var denodeify = require('denodeify');
-var fs = require('fs');
-var _ = require('lodash');
-var schema = require('./schema.json');
-var NitroPatternResolver = require('nitro-pattern-resolver');
-var NitroPatternValidator = require('nitro-pattern-validator');
-var mkdirp = denodeify(require('mkdirp'));
-var fsWriteFiles = denodeify(fs.writeFile);
-var fsReadFile = denodeify(fs.readFile);
-var frontifyApi = require('@frontify/frontify-api');
+'use strict';
+const assert = require('assert');
+const path = require('path');
+const denodeify = require('denodeify');
+const fs = require('fs');
+const _ = require('lodash');
+const schema = require('./schema.json');
+const NitroComponentResolver = require('nitro-component-resolver');
+const NitroComponentValidator = require('nitro-component-validator');
+const mkdirp = denodeify(require('mkdirp'));
+const fsWriteFile = denodeify(fs.writeFile);
+const fsReadFile = denodeify(fs.readFile);
+const frontifyApi = require('@frontify/frontify-api');
 
-function NitroFrontifyDeployer(config) {
-  assert(config.rootDirectory && fs.existsSync(config.rootDirectory), `Please specify your component rootDirectory folder e.g. { rootDirectory: '/a/path'}`);
-  assert(config.targetDir && fs.existsSync(config.targetDir), `Please specify your component targetDir folder e.g. { targetDir: '/a/path'}`);
-  assert(typeof config.mapping === 'object', `Please specifiy the foldername component type mapping e.g. { mapping: {'atoms': 'atom' } }`);
-  assert(typeof config.compiler === 'function', `Please specify a compiler function to compile the example templates`);
-  this.nitroPatternResolver = config.nitroPatternResolver || new NitroPatternResolver({
-    rootDirectory: config.rootDirectory,
-    examples: true
-  });
-  this.options = {};
-  // The temporary directory where the html files should be build into
-  this.options.targetDir = config.targetDir;
-  // The source directory where the components are read from
-  this.options.rootDirectory = config.rootDirectory;
-  // Mapping between component folder name e.g. 'atoms' and component type e.g. 'atom'
-  this.options.mapping = config.mapping;
-  // The template compiler
-  this.options.compiler = config.compiler;
-  // Options to deploy the result to frontify
-  this.options.frontifyOptions = config.frontifyOptions;
+class NitroFrontifyDeployer {
 
-  this.patternValidator = config.nitroPatternValidator || new NitroPatternValidator();
-  this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
+	constructor(config) {
+		assert(config.rootDirectory && fs.existsSync(config.rootDirectory),
+			'Please specify your component rootDirectory folder e.g. { rootDirectory: "/a/path"}');
+		assert(config.targetDir && fs.existsSync(config.targetDir),
+			'Please specify your component targetDir folder e.g. { targetDir: "/a/path"}');
+		assert(typeof config.mapping === 'object',
+			'Please specifiy the foldername component type mapping e.g. { mapping: {"atoms": "atom" } }');
+		assert(typeof config.compiler === 'function',
+			'Please specify a compiler function to compile the example templates');
+
+		this.nitroComponentResolver = config.nitroComponentResolver || new NitroComponentResolver({
+			rootDirectory: config.rootDirectory,
+			examples: true
+		});
+		this.options = {};
+		// The temporary directory where the html files should be build into
+		this.options.targetDir = config.targetDir;
+		// The source directory where the components are read from
+		this.options.rootDirectory = config.rootDirectory;
+		// Mapping between component folder name e.g. 'atoms' and component type e.g. 'atom'
+		this.options.mapping = config.mapping;
+		// The template compiler
+		this.options.compiler = config.compiler;
+		// Options to deploy the result to frontify
+		this.options.frontifyOptions = config.frontifyOptions;
+
+		this.patternValidator = config.nitroPatternValidator || new NitroComponentValidator();
+		this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
+	}
+
+	/**
+	 * Validates all found components
+	 *
+	 * Returns true if all components are valid
+	 * @returns {boolean} success
+	 *
+	 */
+	validateComponents() {
+		return this.nitroComponentResolver
+			.getComponents()
+			.then((components) => {
+				if (Object.keys(components).length === 0) {
+					throw new Error('Component validation failed - no components found');
+				}
+				return !_.values(components)
+					.some((component) => !this._validateComponent(component));
+			});
+	}
+
+	/**
+	 * The main method which validates, builds and compiles the entire frontend to frontify
+	 * @return {boolean} success
+	 */
+	deploy() {
+		return this.validateComponents()
+			.then(() => this._buildComponents())
+			.then(() => this._syncComponents());
+	}
+
+	/**
+	 * Validate a single component
+	 * @param {object} component A nitro-component-resolver component instance
+	 * @return {boolean} success
+	 */
+	_validateComponent(component) {
+		this.patternValidator.validateComponent(component);
+		// Get the type folder name e.g. 'atoms' or 'molecules'
+		const typeFolderName = path.basename(path.dirname(path.dirname(component.metaFile)));
+		if (!this.options.mapping[typeFolderName]) {
+			throw new Error(`Folder name "${typeFolderName}" is not in the mapping.`);
+		}
+		return true;
+	}
+
+	/**
+	 * Generates the frontify variation data for an example file
+	 * @param {object} component A nitro-component-resolver component instance
+	 * @param {object} example A nitro-component-resolver example instance
+	 * @return {object} variant
+	 */
+	_generateVariation(component, example) {
+		const name = path.basename(example.filepath).replace(/\..+$/, '');
+		const examplePath = path.join(path.relative(this.options.rootDirectory, component.directory), `${name}.html`);
+		return {
+			name: `${component.name} ${name}`,
+			assets: {
+				html: [
+					examplePath.replace(/\\/g, '/')
+				]
+			}
+		};
+	}
+
+	/**
+	 * Generates the frontify ready pattern json data for the given component
+	 * @param {object} component A nitro-component-resolver component instance
+	 * @return {object} transferData
+	 */
+	_generateComponentTransferData(component) {
+		const resultJson = {};
+		const sourceJson = component.data;
+		const frontifyProperties = Object.keys(schema.properties);
+		// Copy all known properties
+		frontifyProperties.forEach((property) => {
+			if (sourceJson[property] !== undefined) {
+				resultJson[property] = sourceJson[property];
+			}
+		});
+		const componentPath = path.dirname(component.metaFile);
+		const componentName = path.basename(componentPath);
+		const componenType = path.basename(path.dirname(componentPath));
+		// Set name from folder name e.g. components/atoms/button -> button
+		/* istanbul ignore else */
+		if (!resultJson.name) {
+			resultJson.name = componentName;
+		}
+		// Set type from folder name e.g. components/atoms/button -> atoms -> [options.mapping] -> atom
+		/* istanbul ignore else */
+		if (!resultJson.type) {
+			resultJson.type = this.options.mapping[componenType];
+		}
+		// Add variations
+		resultJson.variations = {};
+		return this.nitroComponentResolver.getComponentExamples(component.directory)
+			.then((examples) => {
+				examples
+				.filter((example) => !example.hidden)
+				.forEach((example) => {
+					const exampleName = path.relative(component.directory, example.filepath).replace(/\\/g, '/');
+					resultJson.variations[exampleName] = this._generateVariation(component, example);
+				});
+				return resultJson;
+			});
+	}
+
+	/**
+	 * Compile the example template using the engine from the config e.g. handlebars
+	 * @param {string} templateSrc template source file e.g. /a/path/file.hbs
+	 * @param {string} templateDest template output file e.g. /a/path/file.html
+	 * @returns {Promise} write promise
+	 */
+	_compileExample(templateSrc, templateDest) {
+		return mkdirp(path.dirname(templateDest)).then(() =>
+			fsReadFile(templateSrc).then((src) => {
+				let compiled = this.options.compiler(src.toString());
+				// Execute template
+				/* istanbul ignore else */
+				if (typeof compiled === 'function') {
+					compiled = compiled({});
+				}
+				return fsWriteFile(templateDest, compiled);
+			})
+		);
+	}
+
+	/**
+	 * Generates the frontify ready pattern json data for the given component
+	 * @param {object} component A nitro-component-resolver component instance
+	 * @returns {Promise} build promise
+	 */
+	_buildComponent(component) {
+		return this._generateComponentTransferData(component)
+			// pattern.json
+			.then((transferData) => {
+				const relativeComponentDirectory = path.relative(this.options.rootDirectory, component.directory);
+				const componentTargetDir = path.resolve(this.options.targetDir, relativeComponentDirectory);
+				const patternJson = path.join(componentTargetDir, 'pattern.json');
+				return mkdirp(componentTargetDir)
+					.then(() => fsWriteFile(patternJson, JSON.stringify(transferData, null, 2)))
+					.then(() => transferData);
+			})
+			// html files
+			.then((transferData) => {
+				const variationNames = Object.keys(transferData.variations);
+				return Promise.all(variationNames.map((variationName) => {
+					const variationTemplateSrc = path.resolve(component.directory, variationName);
+					const firstAsset = transferData.variations[variationName].assets.html[0];
+					const variationTemplateDest = path.resolve(this.options.targetDir, firstAsset);
+					return this._compileExample(variationTemplateSrc, variationTemplateDest);
+				}));
+			});
+	}
+
+	/**
+	 * Build all components
+	 * @returns {Promise} build promise
+	 */
+	_buildComponents() {
+		return this.nitroComponentResolver
+			.getComponents()
+			.then((components) => Promise.all(
+					_.values(components)
+					.map((component) => this._buildComponent(component))
+				)
+			);
+	}
+
+	/**
+	 * Syncs all components to frontify
+	 * @returns {Promise} sync promise
+	 */
+	_syncComponents() {
+		assert(typeof this.options.frontifyOptions === 'object', 'Please specifiy the frontify options');
+		return frontifyApi.syncPatterns(_.extend({
+			cwd: this.options.targetDir
+		}, this.options.frontifyOptions), ['*/*.json']);
+	}
+
 }
-
-/**
- * Validates all found components
- *
- * Returns true if all components are valid
- *
- */
-NitroFrontifyDeployer.prototype.validateComponents = function() {
-  return this.nitroPatternResolver
-    .getComponents()
-    .then((components) => {
-      if (Object.keys(components).length === 0) {
-        throw new Error('Component validation failed - no components found');
-      }
-      return !_.values(components)
-        .some((component) => !this._validateComponent(component));
-    });
-};
-
-
-/**
- * The main method which validates, builds and compiles the entire frontend to frontify
- */
-NitroFrontifyDeployer.prototype.deploy = function() {
-  return this.validateComponents()
-    .then(() => this._buildComponents())
-    .then(() => this._syncComponents());
-}
-
-/**
- * Validate a single component
- */
-NitroFrontifyDeployer.prototype._validateComponent = function(component) {
-  this.patternValidator.validateComponent(component);
-  // Get the type folder name e.g. 'atoms' or 'molecules'
-  var typeFolderName = path.basename(path.dirname(path.dirname(component.metaFile)));
-  if (!this.options.mapping[typeFolderName]) {
-    throw new Error('Folder name "' + typeFolderName + '" is not in the mapping.');
-  }
-  return true;
-};
-
-/**
- * Generates the frontify variation data for an example file
- */
-NitroFrontifyDeployer.prototype._generateVariation = function(component, example) {
-  var name = path.basename(example.filename).replace(/\..+$/, '');
-  var examplePath = path.join(path.relative(this.options.rootDirectory, component.directory), name + '.html');
-  return {
-    name: component.name + ' ' + name,
-    'assets': {
-      'html': [
-        examplePath.replace(/\\/g, '/')
-      ]
-    }
-  };
-};
-
-/**
- * Generates the frontify ready pattern json data for the given component
- */
-NitroFrontifyDeployer.prototype._generateComponentTransferData = function(component) {
-  var resultJson = {};
-  var sourceJson = component.data;
-  var frontifyProperties = Object.keys(schema.properties);
-  // Copy all known properties
-  frontifyProperties.forEach((property) => {
-    if (sourceJson[property] !== undefined) {
-      resultJson[property] = sourceJson[property]
-    }
-  });
-  var componentPath = path.dirname(component.metaFile);
-  var componentName = path.basename(componentPath);
-  var componenType = path.basename(path.dirname(componentPath));
-  // Set name from folder name e.g. components/atoms/button -> button
-  /* istanbul ignore else */
-  if (!resultJson.name) {
-    resultJson.name = componentName;
-  }
-  // Set type from folder name e.g. components/atoms/button -> atoms -> [options.mapping] -> atom
-  /* istanbul ignore else */
-  if (!resultJson.type) {
-    resultJson.type = this.options.mapping[componenType];
-  }
-  // Add variations
-  resultJson.variations = {};
-  return this.nitroPatternResolver.getComponentExamples(component.directory)
-    .then((examples) => {
-      examples
-      .filter((example) => !example.hidden)
-      .forEach((example) => {
-        var exampleName = path.relative(component.directory, example.filename).replace(/\\/g, '/');
-        resultJson.variations[exampleName] = this._generateVariation(component, example);
-      });
-      return resultJson;
-    });
-};
-
-/**
- * Compile the example template using the engine from the config e.g. handlebars
- */
-NitroFrontifyDeployer.prototype._compileExample = function(templateSrc, templateDest) {
-  return mkdirp(path.dirname(templateDest)).then(() => {
-    return fsReadFile(templateSrc).then((src) => {
-      var compiled = this.options.compiler(src.toString());
-      // Execute template
-      /* istanbul ignore else */
-      if (typeof compiled === 'function') {
-        compiled = compiled({});
-      }
-      return fsWriteFiles(templateDest, compiled);
-    });
-  });
-};
-
-/**
- * Generates the frontify ready pattern json data for the given component
- */
-NitroFrontifyDeployer.prototype._buildComponent = function(component) {
-  return this._generateComponentTransferData(component)
-    // pattern.json
-    .then((transferData) => {
-      var componentTargetDir = path.resolve(this.options.targetDir, path.relative(this.options.rootDirectory, component.directory));
-      return mkdirp(componentTargetDir)
-        .then(() => fsWriteFiles(path.join(componentTargetDir, 'pattern.json'), JSON.stringify(transferData, null, 2)))
-        .then(() => transferData);
-    })
-    // html files
-    .then((transferData) => {
-      var variationNames = Object.keys(transferData.variations);
-      return Promise.all(variationNames.map((variationName) => {
-        var variationTemplateSrc = path.resolve(component.directory, variationName);
-        var variationTemplateDest = path.resolve(this.options.targetDir, transferData.variations[variationName].assets.html[0]);
-        return this._compileExample(variationTemplateSrc, variationTemplateDest);
-      }));
-    });
-};
-
-/**
- * Build all components
- */
-NitroFrontifyDeployer.prototype._buildComponents = function() {
-  return this.nitroPatternResolver
-    .getComponents()
-    .then((components) => {
-      return Promise.all(_.values(components)
-        .map((component) => this._buildComponent(component)))
-    });
-};
-
-/**
- * Syncs all components to frontify
- */
-NitroFrontifyDeployer.prototype._syncComponents = function() {
-  assert(typeof this.options.frontifyOptions === 'object', `Please specifiy the frontify options`);
-  return frontifyApi.syncPatterns(_.extend({
-    cwd: this.options.targetDir
-  }, this.options.frontifyOptions), ['*/*.json']);
-};
 
 module.exports = NitroFrontifyDeployer;
