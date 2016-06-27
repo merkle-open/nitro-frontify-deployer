@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
+  "id" : "nitro-frontify-deployer-input-schema",
   "description": "from https://docs.frontify.com/d/2MwJ9kHF57Sc/api#/style-guide-api/build-content-blocks/metadata",
   "properties": {
     "id": {

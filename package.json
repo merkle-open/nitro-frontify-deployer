@@ -8,7 +8,7 @@
     "posttest": "npm-run-all posttest:*",
     "posttest:coverage": "nyc ava",
     "posttest:coverage-report": "nyc report --reporter=html",
-    "posttest:coverage": "nyc check-coverage --lines 100 --functions 100 --branches 100"
+    "posttest:coverage-check": "nyc check-coverage --lines 100 --functions 100 --branches 100"
   },
   "repository": {
     "type": "git",
