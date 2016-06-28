@@ -31,4 +31,6 @@ const deployer = new NitroFrontifyDeployer({
     // Destination directory
     targetDir: '/path/to/your/dist/'
 });
+// Validate, Build, Sync:
+deployer.deploy();
 ```
