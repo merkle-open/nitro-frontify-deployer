@@ -9,6 +9,7 @@ const copy = denodeify(require('ncp').ncp);
 const mkdirp = denodeify(require('mkdirp'));
 const rimraf = denodeify(require('rimraf'));
 const readFile = denodeify(require('fs').readFile);
+const fileExists = (file) => readFile(file).then(() => true).catch(() => false);
 
 const tmp = path.resolve(__dirname, '..', 'tmp', 'testing');
 const fixtures = path.resolve(__dirname, 'fixtures');
@@ -221,6 +222,26 @@ test('should deploy without any error', async t => {
 	});
 	const deployResult = await deployer.deploy();
 	t.deepEqual(deployResult, 'mock-result');
+	t.pass();
+});
+
+
+test('should clean the target folder', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: { atoms: 'atom' },
+		compiler: compilerMock,
+		targetDir: tmpDir,
+		frontifyOptions: {}
+	});
+	const htmlFile = path.join(tmpDir, 'atoms', 'button', 'example.html');
+	await deployer.deploy();
+	const existsBeforeClean = await fileExists(htmlFile);
+	await deployer.clean();
+	const existsAfterClean = await fileExists(htmlFile);
+	t.is(existsBeforeClean, true);
+	t.is(existsAfterClean, false);
 	t.pass();
 });
 

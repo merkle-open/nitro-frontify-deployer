@@ -8,6 +8,7 @@ const schema = require('./schema.json');
 const NitroComponentResolver = require('@namics/nitro-component-resolver');
 const NitroComponentValidator = require('@namics/nitro-component-validator');
 const mkdirp = denodeify(require('mkdirp'));
+const rimraf = denodeify(require('rimraf'));
 const fsWriteFile = denodeify(fs.writeFile);
 const fsReadFile = denodeify(fs.readFile);
 const frontifyApi = require('@frontify/frontify-api');
@@ -17,7 +18,7 @@ class NitroFrontifyDeployer {
 	constructor(config) {
 		assert(config.rootDirectory && fs.existsSync(config.rootDirectory),
 			'Please specify your component rootDirectory folder e.g. { rootDirectory: "/a/path"}');
-		assert(config.targetDir && fs.existsSync(config.targetDir),
+		assert(config.targetDir,
 			'Please specify your component targetDir folder e.g. { targetDir: "/a/path"}');
 		assert(typeof config.mapping === 'object',
 			'Please specifiy the foldername component type mapping e.g. { mapping: {"atoms": "atom" } }');
@@ -71,6 +72,10 @@ class NitroFrontifyDeployer {
 		return this.validateComponents()
 			.then(() => this._buildComponents())
 			.then(() => this._syncComponents());
+	}
+
+	clean() {
+		return rimraf(this.options.targetDir);
 	}
 
 	/**
