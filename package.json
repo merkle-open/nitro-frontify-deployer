@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/namics/node-modules.git"
+    "url": "git+https://github.com/namics/nitro-frontify-deployer.git"
   },
   "keywords": [
     "cache"
@@ -21,13 +21,13 @@
   "author": "Jan Nicklas",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/namics/node-modules/issues"
+    "url": "https://github.com/namics/nitro-frontify-deployer/issues"
   },
   "files": [
     "index.js",
     "schema.json"
   ],
-  "homepage": "https://github.com/namics/node-modules#readme",
+  "homepage": "https://github.com/namics/nitro-frontify-deployer#readme",
   "dependencies": {
     "@frontify/frontify-api": "^0.1.2",
     "denodeify": "^1.2.1",
@@ -37,7 +37,7 @@
     "@namics/nitro-component-validator": "^0.0.1"
   },
   "devDependencies": {
-    "@namics/eslint-config": "git://github.com/namics/eslint-config-namics.git#develop",
+    "@namics/eslint-config": "^0.1.0",
     "ava": "^0.15.2",
     "babel-eslint": "^6.1.0",
     "coveralls": "^2.11.9",
