@@ -4,18 +4,18 @@
 [![Coverage Status](https://coveralls.io/repos/github/namics/nitro-frontify-deployer/badge.svg?branch=master)](https://coveralls.io/github/namics/nitro-frontify-deployer?branch=master)
 [![Codestyle](https://img.shields.io/badge/codestyle-namics-green.svg)](https://github.com/namics/eslint-config-namics)
 
-This build tool generates all necessary artifacts to deploy  the entire projecet into frontify
+This build tool generates all necessary artifacts to deploy the entire nitro project into frontify
 
 ## Installation
 
 ```bash
-npm i --save-dev nitro-frontify-deployer
+npm i --save-dev @namics/nitro-frontify-deployer
 ```
 
 ## Usage
 
 ```js
-const NitroFrontifyDeployer = new require('nitro-frontify-deployer');
+const NitroFrontifyDeployer = new require('@namics/nitro-frontify-deployer');
 const deployer = new NitroFrontifyDeployer({
     rootDirectory: '/path/to/your/components',
     // This mapping is used to resolve the component type from the folder name
