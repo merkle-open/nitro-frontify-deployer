@@ -12,6 +12,7 @@ const rimraf = denodeify(require('rimraf'));
 const fsWriteFile = denodeify(fs.writeFile);
 const fsReadFile = denodeify(fs.readFile);
 const frontifyApi = require('@frontify/frontify-api');
+const html = require('html');
 
 class NitroFrontifyDeployer {
 
@@ -27,7 +28,8 @@ class NitroFrontifyDeployer {
 
 		this.nitroComponentResolver = config.nitroComponentResolver || new NitroComponentResolver({
 			rootDirectory: config.rootDirectory,
-			examples: true
+			examples: true,
+			watch: false
 		});
 		this.options = {};
 		// The temporary directory where the html files should be build into
@@ -169,7 +171,8 @@ class NitroFrontifyDeployer {
 				if (typeof compiled === 'function') {
 					compiled = compiled({});
 				}
-				return fsWriteFile(templateDest, compiled);
+				const pretty = html.prettyPrint(compiled);
+				return fsWriteFile(templateDest, pretty);
 			})
 		);
 	}
@@ -224,7 +227,7 @@ class NitroFrontifyDeployer {
 		assert(typeof this.options.frontifyOptions === 'object', 'Please specifiy the frontify options');
 		return frontifyApi.syncPatterns(_.extend({
 			cwd: this.options.targetDir
-		}, this.options.frontifyOptions), ['*/*.json']);
+		}, this.options.frontifyOptions), ['*/*/pattern.json']);
 	}
 
 }

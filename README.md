@@ -27,7 +27,7 @@ const deployer = new NitroFrontifyDeployer({
         'helpers': 'atom'
     },
     // The example template compiler
-    compiler: require('handlebars'),
+    compiler: (template) => require('handlebars').compile(template),
     // Destination directory
     targetDir: '/path/to/your/dist/'
 });
