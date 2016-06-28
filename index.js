@@ -12,6 +12,7 @@ const rimraf = denodeify(require('rimraf'));
 const fsWriteFile = denodeify(fs.writeFile);
 const fsReadFile = denodeify(fs.readFile);
 const frontifyApi = require('@frontify/frontify-api');
+const copy = denodeify(require('ncp').ncp);
 const html = require('html');
 
 class NitroFrontifyDeployer {
@@ -42,6 +43,10 @@ class NitroFrontifyDeployer {
 		this.options.compiler = config.compiler;
 		// Options to deploy the result to frontify
 		this.options.frontifyOptions = config.frontifyOptions;
+		// JS files to deploy
+		this.options.jsFiles = config.jsFiles || [];
+		// CSS files to deploy
+		this.options.cssFiles = config.cssFiles || [];
 
 		this.patternValidator = config.nitroPatternValidator || new NitroComponentValidator();
 		this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
@@ -171,10 +176,45 @@ class NitroFrontifyDeployer {
 				if (typeof compiled === 'function') {
 					compiled = compiled({});
 				}
-				const pretty = html.prettyPrint(compiled);
+				const pretty = html.prettyPrint(compiled, { indent: 2, unformatted: [] });
 				return fsWriteFile(templateDest, pretty);
 			})
 		);
+	}
+
+	/**
+	 * @returns {Promise}
+	 * Frontify doesn't support uploading css files and js files seperately
+	 */
+	_buildBaseComponent() {
+		const coreComponentDirectory = path.resolve(this.options.targetDir, 'core', 'assets');
+		const coreComponent = {
+			name: 'core-assets',
+			type: 'atom',
+			stability: 'beta',
+			assets: {
+				html: [],
+				css: this.options.cssFiles.map((file) => path.join(coreComponentDirectory, 'css', path.basename(file))),
+				js: this.options.jsFiles.map((file) => path.join(coreComponentDirectory, 'js', path.basename(file)))
+			}
+		};
+		return Promise.resolve()
+			.then(() => mkdirp(path.join(coreComponentDirectory, 'css')))
+			.then(() => Promise.all(
+				this.options.cssFiles.map(
+					(file) => copy(file, path.join(coreComponentDirectory, 'css', path.basename(file)))
+				)
+			))
+			.then(() => mkdirp(path.join(coreComponentDirectory, 'js')))
+			.then(() => Promise.all(
+				this.options.jsFiles.map(
+					(file) => copy(file, path.join(coreComponentDirectory, 'js', path.basename(file)))
+				)
+			))
+			.then(() => fsWriteFile(
+				path.join(coreComponentDirectory, 'pattern.json'),
+				JSON.stringify(coreComponent, null, 2))
+			);
 	}
 
 	/**
@@ -216,7 +256,8 @@ class NitroFrontifyDeployer {
 					_.values(components)
 					.map((component) => this._buildComponent(component))
 				)
-			);
+			)
+			.then(() => this._buildBaseComponent());
 	}
 
 	/**

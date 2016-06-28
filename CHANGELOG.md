@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.4
+----
+* Allow to sync additional js and css files
+
 v0.0.3
 ----
 * Add template prettifier

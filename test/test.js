@@ -38,10 +38,7 @@ const createTestEnvironment = async(environment = 'valid') => {
 };
 
 test('should verify that all files are valid', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -55,10 +52,7 @@ test('should verify that all files are valid', async t => {
 });
 
 test('should throw if a component is not valid', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('invalid');
+	const { componentDir, tmpDir } = await createTestEnvironment('invalid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -77,10 +71,7 @@ test('should throw if a component is not valid', async t => {
 });
 
 test('should throw no component exists', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('empty');
+	const { componentDir, tmpDir } = await createTestEnvironment('empty');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -98,10 +89,7 @@ test('should throw no component exists', async t => {
 });
 
 test('should throw if the component type is not in the mapping', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {},
@@ -117,10 +105,7 @@ test('should throw if the component type is not in the mapping', async t => {
 });
 
 test('should generate the transferdata for a component', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -152,10 +137,7 @@ test('should generate the transferdata for a component', async t => {
 });
 
 test('should generate the transferdata for another component', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -194,10 +176,7 @@ test('should generate the transferdata for another component', async t => {
 });
 
 test('should compile a components examples', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -214,10 +193,7 @@ test('should compile a components examples', async t => {
 });
 
 test('should compile a components examples', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -232,11 +208,24 @@ test('should compile a components examples', async t => {
 	t.pass();
 });
 
+test('should prettify a components examples', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: {
+			atoms: 'atom'
+		},
+		compiler: compilerMock,
+		targetDir: tmpDir
+	});
+	await deployer._buildComponents();
+	const renderedTemplate = await readFile(path.join(tmpDir, 'atoms', 'radio', 'desktop.html'));
+	t.is(renderedTemplate.toString(), '<DIV>\n    <SPAN>FANCY RADIO</SPAN>\n</DIV>');
+	t.pass();
+});
+
 test('should generate a components pattern.json', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -255,10 +244,7 @@ test('should generate a components pattern.json', async t => {
 });
 
 test('should deploy without any error', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
@@ -286,11 +272,42 @@ test('should deploy without any error', async t => {
 	t.pass();
 });
 
+test('should generate a core component', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: {
+			atoms: 'atom'
+		},
+		compiler: compilerMock,
+		targetDir: tmpDir,
+		jsFiles: [path.join(__dirname, 'fixtures', 'assets', 'library.js')],
+		cssFiles: [path.join(__dirname, 'fixtures', 'assets', 'library.css')],
+	});
+	await deployer._buildBaseComponent();
+	const baseComponent = await readFile(path.join(tmpDir, 'core', 'assets', 'pattern.json'));
+	const baseComponentJson = JSON.parse(baseComponent.toString());
+	const expected = {
+		name: 'core-assets',
+		type: 'atom',
+		stability: 'beta',
+		assets: {
+			html: [],
+			css: [
+				path.join(tmpDir, 'core/assets/css/library.css')
+			],
+			js: [
+				path.join(tmpDir, 'core/assets/js/library.js')
+			]
+		}
+	};
+	t.is(await readFile(deployer.options.jsFiles[0]).toString(), await readFile(expected.assets.js[0]).toString());
+	t.is(await readFile(deployer.options.cssFiles[0]).toString(), await readFile(expected.assets.css[0]).toString());
+	t.deepEqual(baseComponentJson, expected);
+});
+
 test('should clean the target folder', async t => {
-	const {
-		componentDir,
-		tmpDir
-	} = await createTestEnvironment('valid');
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
