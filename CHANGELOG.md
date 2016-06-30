@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.6
+----
+* Prevent keep alive
+
 v0.0.5
 ----
 * Fix dependencies
