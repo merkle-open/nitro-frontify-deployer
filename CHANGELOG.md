@@ -1,6 +1,11 @@
 Change History
 ==============
 
+v0.0.7
+----
+* Run integration tests against the frontify api
+* Remove additional js and css files
+
 v0.0.6
 ----
 * Prevent keep alive

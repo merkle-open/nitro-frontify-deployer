@@ -11,7 +11,14 @@
       "type": "string"
     },
     "stability": {
-      "enum": ["alpha", "beta", "stable"]
+      "enum": [
+        "deprecated",
+        "experimental",
+        "unstable",
+        "stable",
+        "frozen",
+        "locked"
+      ]
     }
   },
   "required": [

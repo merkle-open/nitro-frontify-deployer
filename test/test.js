@@ -119,8 +119,7 @@ test('should generate the transferdata for a component', async t => {
 	const expected = {
 		name: 'button',
 		type: 'atom',
-		stability: 'beta',
-		id: 189,
+		stability: 'stable',
 		variations: {
 			'_example/example.hbs': {
 				name: 'button example',
@@ -149,7 +148,7 @@ test('should generate the transferdata for another component', async t => {
 	const radioComponent = await deployer.nitroComponentResolver.getComponent('atoms/radio');
 	const transferData = await deployer._generateComponentTransferData(radioComponent);
 	const expected = {
-		stability: 'stable',
+		stability: 'unstable',
 		name: 'radio',
 		type: 'atom',
 		variations: {
@@ -253,57 +252,16 @@ test('should deploy without any error', async t => {
 		compiler: compilerMock,
 		targetDir: tmpDir,
 		frontifyOptions: {
-			[act]: '...',
-			project: 112324,
-			baseUrl: 'https:/https://app.frontify.com/',
+			[act]: '3a8027e1809854d38d9703ba1af3ca77b2db7da7',
+			project: 92545,
+			baseUrl: 'https://app.frontify.com/',
 			dryRun: true
 		}
 	});
-	//
-	// TODO UPDATE FRONTIFY OPTIONS AND REMOVE ERROR CHECKING
-	//
-	const err = await getErrorMessage(async() => {
-		await deployer.deploy();
-	});
-	t.is(err, 'Could not get your pattern library data. Error: Invalid URI "https:/https://app.frontify.com/v1/patterns/list/112324"');
-	//
-	// const deployResult = await deployer.deploy();
-	// t.deepEqual(deployResult.length, 5);
-	t.pass();
-});
 
-test('should generate a core component', async t => {
-	const { componentDir, tmpDir } = await createTestEnvironment('valid');
-	const deployer = new NitroFrontifyDeployer({
-		rootDirectory: componentDir,
-		mapping: {
-			atoms: 'atom'
-		},
-		compiler: compilerMock,
-		targetDir: tmpDir,
-		jsFiles: [path.join(__dirname, 'fixtures', 'assets', 'library.js')],
-		cssFiles: [path.join(__dirname, 'fixtures', 'assets', 'library.css')],
-	});
-	await deployer._buildBaseComponent();
-	const baseComponent = await readFile(path.join(tmpDir, 'core', 'assets', 'pattern.json'));
-	const baseComponentJson = JSON.parse(baseComponent.toString());
-	const expected = {
-		name: 'core-assets',
-		type: 'atom',
-		stability: 'beta',
-		assets: {
-			html: [],
-			css: [
-				path.join(tmpDir, 'core/assets/css/library.css')
-			],
-			js: [
-				path.join(tmpDir, 'core/assets/js/library.js')
-			]
-		}
-	};
-	t.is(await readFile(deployer.options.jsFiles[0]).toString(), await readFile(expected.assets.js[0]).toString());
-	t.is(await readFile(deployer.options.cssFiles[0]).toString(), await readFile(expected.assets.css[0]).toString());
-	t.deepEqual(baseComponentJson, expected);
+	const deployResult = await deployer.deploy();
+	t.deepEqual(deployResult.length, 5);
+	t.pass();
 });
 
 test('should clean the target folder', async t => {
