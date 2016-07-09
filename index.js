@@ -14,8 +14,15 @@ const fsReadFile = denodeify(fs.readFile);
 const frontifyApi = require('@frontify/frontify-api');
 const html = require('html');
 
+/**
+ * An instance of the nitro frontify deployer searches through the given
+ * directory, parses the pattern.json files, compiles all examples and
+ * transmits the result to frontify
+ */
 class NitroFrontifyDeployer {
-
+	/**
+	 * @param {Object} config Base config
+	 */
 	constructor(config) {
 		assert(config.rootDirectory && fs.existsSync(config.rootDirectory),
 			'Please specify your component rootDirectory folder e.g. { rootDirectory: "/a/path"}');
@@ -68,7 +75,7 @@ class NitroFrontifyDeployer {
 
 	/**
 	 * The main method which validates, builds and compiles the entire frontend to frontify
-	 * @return {boolean} success
+	 * @returns {boolean} success
 	 */
 	deploy() {
 		return this.validateComponents()
@@ -76,14 +83,18 @@ class NitroFrontifyDeployer {
 			.then(() => this._syncComponents());
 	}
 
+	/**
+	 * Remove recursivly all files from the target directory
+	 * @returns {Promise} promise of the finished cleanning
+	 */
 	clean() {
 		return rimraf(this.options.targetDir);
 	}
 
 	/**
 	 * Validate a single component
-	 * @param {object} component A nitro-component-resolver component instance
-	 * @return {boolean} success
+	 * @param {Object} component A nitro-component-resolver component instance
+	 * @returns {boolean} success
 	 */
 	_validateComponent(component) {
 		this.patternValidator.validateComponent(component);
@@ -97,9 +108,9 @@ class NitroFrontifyDeployer {
 
 	/**
 	 * Generates the frontify variation data for an example file
-	 * @param {object} component A nitro-component-resolver component instance
-	 * @param {object} example A nitro-component-resolver example instance
-	 * @return {object} variant
+	 * @param {Object} component A nitro-component-resolver component instance
+	 * @param {Object} example A nitro-component-resolver example instance
+	 * @returns {Object} variant
 	 */
 	_generateVariation(component, example) {
 		const name = path.basename(example.filepath).replace(/\..+$/, '');
@@ -116,8 +127,8 @@ class NitroFrontifyDeployer {
 
 	/**
 	 * Generates the frontify ready pattern json data for the given component
-	 * @param {object} component A nitro-component-resolver component instance
-	 * @return {object} transferData
+	 * @param {Object} component A nitro-component-resolver component instance
+	 * @returns {Object} transferData
 	 */
 	_generateComponentTransferData(component) {
 		const resultJson = {};
@@ -179,7 +190,7 @@ class NitroFrontifyDeployer {
 
 	/**
 	 * Generates the frontify ready pattern json data for the given component
-	 * @param {object} component A nitro-component-resolver component instance
+	 * @param {Object} component A nitro-component-resolver component instance
 	 * @returns {Promise} build promise
 	 */
 	_buildComponent(component) {
