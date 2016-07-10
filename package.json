@@ -1,6 +1,6 @@
 {
   "name": "@namics/nitro-frontify-deployer",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A helper to deploy all nitro components to frontify",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   "homepage": "https://github.com/namics/nitro-frontify-deployer#readme",
   "dependencies": {
     "@frontify/frontify-api": "^0.2.0",
-    "@namics/nitro-component-resolver": "^0.0.4",
+    "@namics/nitro-component-resolver": "~0.0.6",
     "@namics/nitro-component-validator": "^0.0.2",
     "denodeify": "^1.2.1",
     "html": "0.0.10",
@@ -41,7 +41,7 @@
   "devDependencies": {
     "@namics/eslint-config": "^0.2.0",
     "ava": "^0.15.2",
-    "babel-eslint": "^6.1.1",
+    "babel-eslint": "^6.1.2",
     "coveralls": "^2.11.9",
     "eslint": "^3.0.1",
     "eslint-plugin-import": "^1.10.2",

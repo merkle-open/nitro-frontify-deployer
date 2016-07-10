@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.9
+----
+* Update dependencies
+
 v0.0.8
 ----
 * Update dependencies
