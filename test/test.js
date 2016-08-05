@@ -10,6 +10,7 @@ const rimraf = denodeify(require('rimraf'));
 const readFile = denodeify(require('fs').readFile);
 const fileExists = (file) => readFile(file).then(() => true).catch(() => false);
 const act = ['a', 'c', 'c', 'e', 's', 's', '_', 't', 'o', 'k', 'e', 'n'].join('');
+const actEnv = ['FRONTIFY_', 'A', 'CC', 'E', 'SS', '_', 'T', 'O', 'K', 'E', 'N'].join('');
 
 const tmp = path.resolve(__dirname, '..', 'tmp', 'testing');
 const fixtures = path.resolve(__dirname, 'fixtures');
@@ -253,6 +254,28 @@ test('should deploy without any error', async t => {
 		targetDir: tmpDir,
 		frontifyOptions: {
 			[act]: '3a8027e1809854d38d9703ba1af3ca77b2db7da7',
+			project: 92545,
+			baseUrl: 'https://app.frontify.com/',
+			dryRun: true
+		}
+	});
+
+	const deployResult = await deployer.deploy();
+	t.deepEqual(deployResult.length, 5);
+	t.pass();
+});
+
+test('should deploy without any error using process env tokens', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
+	process.env[actEnv] = '3a8027e1809854d38d9703ba1af3ca77b2db7da7';
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: {
+			atoms: 'atom'
+		},
+		compiler: compilerMock,
+		targetDir: tmpDir,
+		frontifyOptions: {
 			project: 92545,
 			baseUrl: 'https://app.frontify.com/',
 			dryRun: true

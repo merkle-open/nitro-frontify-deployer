@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.10
+----
+* Allow to pass the acces token key using process environment variables.
+
 v0.0.9
 ----
 * Update dependencies

@@ -29,8 +29,19 @@ const deployer = new NitroFrontifyDeployer({
     // The example template compiler
     compiler: (template) => require('handlebars').compile(template),
     // Destination directory
-    targetDir: '/path/to/your/dist/'
+    targetDir: '/path/to/your/dist/',
+    // Frontify Options
+    frontifyOptions: {
+        access_token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        project: 12345,
+        baseUrl: 'https://app.frontify.com/',
+    }
 });
 // Validate, Build, Sync:
 deployer.deploy();
 ```
+
+## Security
+
+You can also pass the frontify access_token by setting a `FRONTIFY_ACCESS_TOKEN` process variable instead of writting it into your code.
+

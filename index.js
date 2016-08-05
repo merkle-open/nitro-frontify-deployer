@@ -48,7 +48,11 @@ class NitroFrontifyDeployer {
 		// The template compiler
 		this.options.compiler = config.compiler;
 		// Options to deploy the result to frontify
-		this.options.frontifyOptions = config.frontifyOptions;
+		// see https://www.npmjs.com/package/@frontify/frontify-api#advanced-usage
+		this.options.frontifyOptions = config.frontifyOptions || {};
+		if (!this.options.frontifyOptions.access_token && process.env.FRONTIFY_ACCESS_TOKEN) {
+			this.options.frontifyOptions.access_token = process.env.FRONTIFY_ACCESS_TOKEN;
+		}
 
 		this.patternValidator = config.nitroPatternValidator || new NitroComponentValidator();
 		this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
