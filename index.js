@@ -54,7 +54,7 @@ class NitroFrontifyDeployer {
 			this.options.frontifyOptions.access_token = process.env.FRONTIFY_ACCESS_TOKEN;
 		}
 
-		this.patternValidator = config.nitroPatternValidator || new NitroComponentValidator();
+		this.patternValidator = config.nitroComponentValidator || new NitroComponentValidator();
 		this.patternValidator.addSchema(schema, 'frontify-deployer-schema');
 	}
 
@@ -162,7 +162,7 @@ class NitroFrontifyDeployer {
 		return this.nitroComponentResolver.getComponentExamples(component.directory)
 			.then((examples) => {
 				examples
-				.filter((example) => !example.hidden)
+				.filter((example) => example.main)
 				.forEach((example) => {
 					const exampleName = path.relative(component.directory, example.filepath).replace(/\\/g, '/');
 					resultJson.variations[exampleName] = this._generateVariation(component, example);
