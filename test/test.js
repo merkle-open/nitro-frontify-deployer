@@ -261,7 +261,8 @@ test('should deploy without any error', async t => {
 	});
 
 	const deployResult = await deployer.deploy();
-	t.deepEqual(deployResult.length, 5);
+	t.deepEqual(deployResult.assets.length, 0);
+	t.deepEqual(deployResult.components.length, 5);
 	t.pass();
 });
 
@@ -283,7 +284,33 @@ test('should deploy without any error using process env tokens', async t => {
 	});
 
 	const deployResult = await deployer.deploy();
-	t.deepEqual(deployResult.length, 5);
+	t.deepEqual(deployResult.assets.length, 0);
+	t.deepEqual(deployResult.components.length, 5);
+	t.pass();
+});
+
+test('should deploy assets without any error', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: {
+			atoms: 'atom'
+		},
+		assetFolder: path.join(__dirname, 'fixtures'),
+		assetFilter: ['**/*.js', '**/*.css'],
+		compiler: compilerMock,
+		targetDir: tmpDir,
+		frontifyOptions: {
+			[act]: '3a8027e1809854d38d9703ba1af3ca77b2db7da7',
+			project: 92545,
+			baseUrl: 'https://app.frontify.com/',
+			dryRun: true
+		}
+	});
+
+	const deployResult = await deployer.deploy();
+	t.deepEqual(deployResult.assets.length, 2);
+	t.deepEqual(deployResult.components.length, 5);
 	t.pass();
 });
 

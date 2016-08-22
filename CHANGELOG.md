@@ -1,6 +1,11 @@
 Change History
 ==============
 
+v0.0.12
+-------
+* add assets option
+* return the synced assets and components
+
 v0.0.11
 -------
 * use correct validator config param
@@ -8,7 +13,7 @@ v0.0.11
 
 v0.0.10
 ----
-* Allow to pass the acces token key using process environment variables.
+* Allow to pass the access token key using process environment variables.
 
 v0.0.9
 ----

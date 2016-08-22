@@ -47,6 +47,9 @@ class NitroFrontifyDeployer {
 		this.options.mapping = config.mapping;
 		// The template compiler
 		this.options.compiler = config.compiler;
+		// Additional assets (javascript css images fonts)
+		this.options.assetFolder = config.assetFolder || '';
+		this.options.assetFilter = config.assetFilter || ['**/*.*'];
 		// Options to deploy the result to frontify
 		// see https://www.npmjs.com/package/@frontify/frontify-api#advanced-usage
 		this.options.frontifyOptions = config.frontifyOptions || {};
@@ -84,7 +87,15 @@ class NitroFrontifyDeployer {
 	deploy() {
 		return this.validateComponents()
 			.then(() => this._buildComponents())
-			.then(() => this._syncComponents());
+			.then(() => Promise.all([
+				this._syncAssets(),
+				this._syncComponents()
+			]))
+			.then((syncResults) => (
+				{
+					assets: syncResults[0],
+					components: syncResults[1]
+				}));
 	}
 
 	/**
@@ -243,6 +254,19 @@ class NitroFrontifyDeployer {
 		return frontifyApi.syncPatterns(_.extend({
 			cwd: this.options.targetDir
 		}, this.options.frontifyOptions), ['*/*/pattern.json']);
+	}
+
+	/**
+	 * Syncs assets like images to frontify
+	 * @returns {Promise} sync promise
+	 */
+	_syncAssets() {
+		if (this.options.assetFolder === '') {
+			return Promise.resolve([]);
+		}
+		return frontifyApi.syncAssets(_.extend({
+			cwd: this.options.assetFolder
+		}, this.options.frontifyOptions), this.options.assetFilter);
 	}
 
 }
