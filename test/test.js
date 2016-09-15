@@ -202,7 +202,7 @@ test('should compile a components examples', async t => {
 		compiler: compilerMock,
 		targetDir: tmpDir
 	});
-	await deployer._buildComponents();
+	await deployer.buildComponents();
 	const renderedTemplate = await readFile(path.join(tmpDir, 'atoms', 'button', 'example.html'));
 	t.is(renderedTemplate.toString(), 'HELLO WORLD');
 	t.pass();
@@ -218,9 +218,25 @@ test('should prettify a components examples', async t => {
 		compiler: compilerMock,
 		targetDir: tmpDir
 	});
-	await deployer._buildComponents();
+	await deployer.buildComponents();
 	const renderedTemplate = await readFile(path.join(tmpDir, 'atoms', 'radio', 'desktop.html'));
 	t.is(renderedTemplate.toString(), '<DIV>\n    <SPAN>FANCY RADIO</SPAN>\n</DIV>');
+	t.pass();
+});
+
+test('should add the template name to the template error message', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('template-error');
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: {
+			atoms: 'atom'
+		},
+		compiler: () => { throw new Error('Compile error'); },
+		targetDir: tmpDir
+	});
+	const errorMessage = await getErrorMessage(() => deployer.buildComponents());
+	const renderedTemplate = path.join(componentDir, 'atoms', 'button', '_example', 'example.hbs');
+	t.is(`"${renderedTemplate}" Compile error`, errorMessage);
 	t.pass();
 });
 
@@ -325,7 +341,7 @@ test('should clean the target folder', async t => {
 		targetDir: tmpDir
 	});
 	const htmlFile = path.join(tmpDir, 'atoms', 'button', 'example.html');
-	await deployer._buildComponents();
+	await deployer.buildComponents();
 	const existsBeforeClean = await fileExists(htmlFile);
 	await deployer.clean();
 	const existsAfterClean = await fileExists(htmlFile);

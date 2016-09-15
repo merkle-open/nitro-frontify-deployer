@@ -1,6 +1,11 @@
 Change History
 ==============
 
+v0.0.13
+-------
+* make build components public
+* add information about which template was broken during compilation
+
 v0.0.12
 -------
 * add assets option

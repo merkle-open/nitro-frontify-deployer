@@ -86,7 +86,7 @@ class NitroFrontifyDeployer {
 	 */
 	deploy() {
 		return this.validateComponents()
-			.then(() => this._buildComponents())
+			.then(() => this.buildComponents())
 			.then(() => Promise.all([
 				this._syncAssets(),
 				this._syncComponents()
@@ -191,11 +191,17 @@ class NitroFrontifyDeployer {
 	_compileExample(templateSrc, templateDest) {
 		return mkdirp(path.dirname(templateDest)).then(() =>
 			fsReadFile(templateSrc).then((src) => {
-				let compiled = this.options.compiler(src.toString());
-				// Execute template
-				/* istanbul ignore else */
-				if (typeof compiled === 'function') {
-					compiled = compiled({});
+				let compiled;
+				try {
+					compiled = this.options.compiler(src.toString());
+					// Execute template
+					/* istanbul ignore else */
+					if (typeof compiled === 'function') {
+						compiled = compiled({});
+					}
+				} catch (templateCompileError) {
+					templateCompileError.message = `"${templateSrc}" ${templateCompileError.message}`;
+					throw templateCompileError;
 				}
 				const pretty = html.prettyPrint(compiled, { indent: 2, unformatted: [] });
 				return fsWriteFile(templateDest, pretty);
@@ -235,7 +241,7 @@ class NitroFrontifyDeployer {
 	 * Build all components
 	 * @returns {Promise} build promise
 	 */
-	_buildComponents() {
+	buildComponents() {
 		return this.nitroComponentResolver
 			.getComponents()
 			.then((components) => Promise.all(
@@ -251,6 +257,7 @@ class NitroFrontifyDeployer {
 	 */
 	_syncComponents() {
 		assert(typeof this.options.frontifyOptions === 'object', 'Please specifiy the frontify options');
+		assert(this.options.frontifyOptions.access_token, 'Please specify a frontify token');
 		return frontifyApi.syncPatterns(_.extend({
 			cwd: this.options.targetDir
 		}, this.options.frontifyOptions), ['*/*/pattern.json']);
@@ -261,6 +268,8 @@ class NitroFrontifyDeployer {
 	 * @returns {Promise} sync promise
 	 */
 	_syncAssets() {
+		assert(typeof this.options.frontifyOptions === 'object', 'Please specifiy the frontify options');
+		assert(this.options.frontifyOptions.access_token, 'Please specify a frontify token');
 		if (this.options.assetFolder === '') {
 			return Promise.resolve([]);
 		}
