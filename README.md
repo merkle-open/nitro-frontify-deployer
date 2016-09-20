@@ -2,6 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/%40namics%2Fnitro-frontify-deployer.svg)](https://badge.fury.io/js/%40namics%2Fnitro-frontify-deployer)
 [![Build Status](https://travis-ci.org/namics/nitro-frontify-deployer.svg?branch=master)](https://travis-ci.org/namics/nitro-frontify-deployer)
+[![Build status](https://ci.appveyor.com/api/projects/status/6ka1xay4sf3tsjwn/branch/master?svg=true)](https://ci.appveyor.com/project/ernscht/nitro-frontify-deployer/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/namics/nitro-frontify-deployer/badge.svg?branch=master)](https://coveralls.io/github/namics/nitro-frontify-deployer?branch=master)
 [![Codestyle](https://img.shields.io/badge/codestyle-namics-green.svg)](https://github.com/namics/eslint-config-namics)
 

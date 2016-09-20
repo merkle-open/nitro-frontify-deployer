@@ -1,6 +1,6 @@
 {
   "name": "@namics/nitro-frontify-deployer",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A helper to deploy all nitro components to frontify",
   "main": "index.js",
   "scripts": {
@@ -29,7 +29,7 @@
   ],
   "homepage": "https://github.com/namics/nitro-frontify-deployer#readme",
   "dependencies": {
-    "@frontify/frontify-api": "^0.3.0",
+    "@frontify/frontify-api": "^0.3.1",
     "@namics/nitro-component-resolver": "~0.0.7",
     "@namics/nitro-component-validator": "^0.0.3",
     "denodeify": "^1.2.1",

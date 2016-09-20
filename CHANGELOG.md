@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.14
+-------
+* update to frontify API v0.3.1 to have windows compatibility
+
 v0.0.13
 -------
 * make build components public
