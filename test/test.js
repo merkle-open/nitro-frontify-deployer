@@ -175,6 +175,28 @@ test('should generate the transferdata for another component', async t => {
 	t.pass();
 });
 
+test('should allow to process the component name', async t => {
+	const { componentDir, tmpDir } = await createTestEnvironment('valid');
+	const deployer = new NitroFrontifyDeployer({
+		rootDirectory: componentDir,
+		mapping: {
+			atoms: 'atom'
+		},
+		componentNameProcessor: (name, componentName, componentType, componentPath) => {
+			return `${name} - ${componentName} - ${componentType} - ${componentPath}`;
+		},
+		compiler: compilerMock,
+		targetDir: tmpDir
+	});
+	const buttonComponent = await deployer.nitroComponentResolver.getComponent('atoms/button');
+	const transferData = await deployer._generateComponentTransferData(buttonComponent);
+	const componentName = transferData.name;
+	const componentDirectory = path.join(componentDir, 'atoms', 'button');
+	const expected = `button - button - atoms - ${componentDirectory}`;
+	t.deepEqual(componentName, expected);
+	t.pass();
+});
+
 test('should compile a components examples', async t => {
 	const { componentDir, tmpDir } = await createTestEnvironment('valid');
 	const deployer = new NitroFrontifyDeployer({

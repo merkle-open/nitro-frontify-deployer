@@ -1,6 +1,6 @@
 {
   "name": "@namics/nitro-frontify-deployer",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "A helper to deploy all nitro components to frontify",
   "main": "index.js",
   "scripts": {

@@ -50,6 +50,10 @@ class NitroFrontifyDeployer {
 		// Additional assets (javascript css images fonts)
 		this.options.assetFolder = config.assetFolder || '';
 		this.options.assetFilter = config.assetFilter || ['**/*.*'];
+		// Optional name transform
+		this.options.componentNameProcessor = config.componentNameProcessor || function (name) {
+			return name;
+		};
 		// Options to deploy the result to frontify
 		// see https://www.npmjs.com/package/@frontify/frontify-api#advanced-usage
 		this.options.frontifyOptions = config.frontifyOptions || {};
@@ -163,6 +167,8 @@ class NitroFrontifyDeployer {
 		if (!resultJson.name) {
 			resultJson.name = componentName;
 		}
+		// Allow to postprocess the assets name
+		resultJson.name = this.options.componentNameProcessor(resultJson.name, componentName, componenType, componentPath);
 		// Set type from folder name e.g. components/atoms/button -> atoms -> [options.mapping] -> atom
 		/* istanbul ignore else */
 		if (!resultJson.type) {
