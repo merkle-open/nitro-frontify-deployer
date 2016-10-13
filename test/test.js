@@ -123,7 +123,7 @@ test('should generate the transferdata for a component', async t => {
 		stability: 'stable',
 		variations: {
 			'_example/example.hbs': {
-				name: 'button example',
+				name: 'button -- example',
 				assets: {
 					html: [
 						'atoms/button/example.html'
@@ -154,7 +154,7 @@ test('should generate the transferdata for another component', async t => {
 		type: 'atom',
 		variations: {
 			'_example/desktop.hbs': {
-				name: 'radio desktop',
+				name: 'radio -- desktop',
 				assets: {
 					html: [
 						'atoms/radio/desktop.html'
@@ -162,7 +162,7 @@ test('should generate the transferdata for another component', async t => {
 				}
 			},
 			'_example/mobile.hbs': {
-				name: 'radio mobile',
+				name: 'radio -- mobile',
 				assets: {
 					html: [
 						'atoms/radio/mobile.html'

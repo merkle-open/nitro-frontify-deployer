@@ -127,15 +127,16 @@ class NitroFrontifyDeployer {
 
 	/**
 	 * Generates the frontify variation data for an example file
-	 * @param {Object} component A nitro-component-resolver component instance
+	 * @param {string} componentName the name of the component
+	 * @param {string} componentPath the absolute path to the component directory
 	 * @param {Object} example A nitro-component-resolver example instance
 	 * @returns {Object} variant
 	 */
-	_generateVariation(component, example) {
+	_generateVariation(componentName, componentPath, example) {
 		const name = path.basename(example.filepath).replace(/\..+$/, '');
-		const examplePath = path.join(path.relative(this.options.rootDirectory, component.directory), `${name}.html`);
+		const examplePath = path.join(path.relative(this.options.rootDirectory, componentPath), `${name}.html`);
 		return {
-			name: `${component.name} ${name}`,
+			name: `${componentName} -- ${name}`,
 			assets: {
 				html: [
 					examplePath.replace(/\\/g, '/')
@@ -179,10 +180,12 @@ class NitroFrontifyDeployer {
 		return this.nitroComponentResolver.getComponentExamples(component.directory)
 			.then((examples) => {
 				examples
+				// Only sync the main examples
+				// main examples have a flag `main = true`
 				.filter((example) => example.main)
 				.forEach((example) => {
 					const exampleName = path.relative(component.directory, example.filepath).replace(/\\/g, '/');
-					resultJson.variations[exampleName] = this._generateVariation(component, example);
+					resultJson.variations[exampleName] = this._generateVariation(resultJson.name, componentPath, example);
 				});
 				return resultJson;
 			});

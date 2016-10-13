@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.16
+-------
+* use `componentNameProcessor()` also for the examples
+
 v0.0.15
 -------
 * add `componentNameProcessor()` option to adjust each components name
