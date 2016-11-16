@@ -1,6 +1,10 @@
 Change History
 ==============
 
+v0.0.17
+----
+* Update dependencies
+
 v0.0.16
 -------
 * use `componentNameProcessor()` also for the examples

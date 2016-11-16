@@ -34,7 +34,7 @@ const createTestEnvironment = async(environment = 'valid') => {
 	await copy(path.join(fixtures, environment), targetDir);
 	return {
 		componentDir,
-		tmpDir
+		tmpDir,
 	};
 };
 
@@ -43,10 +43,10 @@ test('should verify that all files are valid', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	t.is(await deployer.validateComponents(), true);
 	t.pass();
@@ -57,10 +57,10 @@ test('should throw if a component is not valid', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const err = await getErrorMessage(async() => {
 		await deployer.validateComponents();
@@ -76,10 +76,10 @@ test('should throw no component exists', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const err = await getErrorMessage(async() => {
 		await deployer.validateComponents();
@@ -95,7 +95,7 @@ test('should throw if the component type is not in the mapping', async t => {
 		rootDirectory: componentDir,
 		mapping: {},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const err = await getErrorMessage(async() => {
 		await deployer.validateComponents();
@@ -110,10 +110,10 @@ test('should generate the transferdata for a component', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const buttonComponent = await deployer.nitroComponentResolver.getComponent('atoms/button');
 	const transferData = await deployer._generateComponentTransferData(buttonComponent);
@@ -126,11 +126,11 @@ test('should generate the transferdata for a component', async t => {
 				name: 'button -- example',
 				assets: {
 					html: [
-						'atoms/button/example.html'
-					]
-				}
-			}
-		}
+						'atoms/button/example.html',
+					],
+				},
+			},
+		},
 	};
 	t.deepEqual(transferData, expected);
 	t.pass();
@@ -141,10 +141,10 @@ test('should generate the transferdata for another component', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const radioComponent = await deployer.nitroComponentResolver.getComponent('atoms/radio');
 	const transferData = await deployer._generateComponentTransferData(radioComponent);
@@ -157,19 +157,19 @@ test('should generate the transferdata for another component', async t => {
 				name: 'radio -- desktop',
 				assets: {
 					html: [
-						'atoms/radio/desktop.html'
-					]
-				}
+						'atoms/radio/desktop.html',
+					],
+				},
 			},
 			'_example/mobile.hbs': {
 				name: 'radio -- mobile',
 				assets: {
 					html: [
-						'atoms/radio/mobile.html'
-					]
-				}
-			}
-		}
+						'atoms/radio/mobile.html',
+					],
+				},
+			},
+		},
 	};
 	t.deepEqual(transferData, expected);
 	t.pass();
@@ -180,13 +180,13 @@ test('should allow to process the component name', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		componentNameProcessor: (name, componentName, componentType, componentPath) => {
 			return `${name} - ${componentName} - ${componentType} - ${componentPath}`;
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const buttonComponent = await deployer.nitroComponentResolver.getComponent('atoms/button');
 	const transferData = await deployer._generateComponentTransferData(buttonComponent);
@@ -202,10 +202,10 @@ test('should compile a components examples', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const buttonComponent = await deployer.nitroComponentResolver.getComponent('atoms/button');
 	await deployer._buildComponent(buttonComponent);
@@ -219,10 +219,10 @@ test('should compile a components examples', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	await deployer.buildComponents();
 	const renderedTemplate = await readFile(path.join(tmpDir, 'atoms', 'button', 'example.html'));
@@ -235,10 +235,10 @@ test('should prettify a components examples', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	await deployer.buildComponents();
 	const renderedTemplate = await readFile(path.join(tmpDir, 'atoms', 'radio', 'desktop.html'));
@@ -251,10 +251,10 @@ test('should add the template name to the template error message', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: () => { throw new Error('Compile error'); },
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const errorMessage = await getErrorMessage(() => deployer.buildComponents());
 	const renderedTemplate = path.join(componentDir, 'atoms', 'button', '_example', 'example.hbs');
@@ -267,10 +267,10 @@ test('should generate a components pattern.json', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const buttonComponent = await deployer.nitroComponentResolver.getComponent('atoms/button');
 	await deployer._buildComponent(buttonComponent);
@@ -286,7 +286,7 @@ test('should deploy without any error', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
 		targetDir: tmpDir,
@@ -294,8 +294,8 @@ test('should deploy without any error', async t => {
 			[act]: '3a8027e1809854d38d9703ba1af3ca77b2db7da7',
 			project: 92545,
 			baseUrl: 'https://app.frontify.com/',
-			dryRun: true
-		}
+			dryRun: true,
+		},
 	});
 
 	const deployResult = await deployer.deploy();
@@ -310,15 +310,15 @@ test('should deploy without any error using process env tokens', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
 		targetDir: tmpDir,
 		frontifyOptions: {
 			project: 92545,
 			baseUrl: 'https://app.frontify.com/',
-			dryRun: true
-		}
+			dryRun: true,
+		},
 	});
 
 	const deployResult = await deployer.deploy();
@@ -332,7 +332,7 @@ test('should deploy assets without any error', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		assetFolder: path.join(__dirname, 'fixtures'),
 		assetFilter: ['**/*.js', '**/*.css'],
@@ -342,8 +342,8 @@ test('should deploy assets without any error', async t => {
 			[act]: '3a8027e1809854d38d9703ba1af3ca77b2db7da7',
 			project: 92545,
 			baseUrl: 'https://app.frontify.com/',
-			dryRun: true
-		}
+			dryRun: true,
+		},
 	});
 
 	const deployResult = await deployer.deploy();
@@ -357,10 +357,10 @@ test('should clean the target folder', async t => {
 	const deployer = new NitroFrontifyDeployer({
 		rootDirectory: componentDir,
 		mapping: {
-			atoms: 'atom'
+			atoms: 'atom',
 		},
 		compiler: compilerMock,
-		targetDir: tmpDir
+		targetDir: tmpDir,
 	});
 	const htmlFile = path.join(tmpDir, 'atoms', 'button', 'example.html');
 	await deployer.buildComponents();

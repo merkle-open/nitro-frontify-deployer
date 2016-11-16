@@ -36,7 +36,7 @@ class NitroFrontifyDeployer {
 		this.nitroComponentResolver = config.nitroComponentResolver || new NitroComponentResolver({
 			rootDirectory: config.rootDirectory,
 			examples: true,
-			watch: false
+			watch: false,
 		});
 		this.options = {};
 		// The temporary directory where the html files should be build into
@@ -93,12 +93,12 @@ class NitroFrontifyDeployer {
 			.then(() => this.buildComponents())
 			.then(() => Promise.all([
 				this._syncAssets(),
-				this._syncComponents()
+				this._syncComponents(),
 			]))
 			.then((syncResults) => (
 				{
 					assets: syncResults[0],
-					components: syncResults[1]
+					components: syncResults[1],
 				}));
 	}
 
@@ -139,9 +139,9 @@ class NitroFrontifyDeployer {
 			name: `${componentName} -- ${name}`,
 			assets: {
 				html: [
-					examplePath.replace(/\\/g, '/')
-				]
-			}
+					examplePath.replace(/\\/g, '/'),
+				],
+			},
 		};
 	}
 
@@ -202,7 +202,7 @@ class NitroFrontifyDeployer {
 			fsReadFile(templateSrc).then((src) => {
 				let compiled;
 				try {
-					compiled = this.options.compiler(src.toString());
+					compiled = this.options.compiler(src.toString(), path.resolve(templateSrc));
 					// Execute template
 					/* istanbul ignore else */
 					if (typeof compiled === 'function') {
@@ -268,7 +268,7 @@ class NitroFrontifyDeployer {
 		assert(typeof this.options.frontifyOptions === 'object', 'Please specifiy the frontify options');
 		assert(this.options.frontifyOptions.access_token, 'Please specify a frontify token');
 		return frontifyApi.syncPatterns(_.extend({
-			cwd: this.options.targetDir
+			cwd: this.options.targetDir,
 		}, this.options.frontifyOptions), ['*/*/pattern.json']);
 	}
 
@@ -283,7 +283,7 @@ class NitroFrontifyDeployer {
 			return Promise.resolve([]);
 		}
 		return frontifyApi.syncAssets(_.extend({
-			cwd: this.options.assetFolder
+			cwd: this.options.assetFolder,
 		}, this.options.frontifyOptions), this.options.assetFilter);
 	}
 
